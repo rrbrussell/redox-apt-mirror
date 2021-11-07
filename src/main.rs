@@ -20,9 +20,11 @@ use chrono::DateTime;
 use chrono::Utc;
 use std::error::Error;
 use std::fs::File;
-use std::io;
-use std::io::prelude::*;
-use voca_rs::manipulate::trim;
+//use std::io;
+//use std::io::prelude::*;
+use std::io::{BufRead, BufReader};
+//use voca_rs::manipulate::trim;
+//use voca_rs::query;
 use voca_rs::Voca;
 
 const FILENAME: &str = "Debian-InRelease";
@@ -31,12 +33,19 @@ const FILENAME: &str = "Debian-InRelease";
 ///
 fn main() -> Result<(), Box<dyn Error>> {
     let file = File::open(FILENAME)?;
-    let mut contents = String::with_capacity(4096);
-    let read_status = file.read_to_string(&mut contents)?;
-    println!("{}", contents);
+    let file_reader = BufReader::new(file);
+    let mut release: ReleaseData;
+    for line in file_reader.lines().map(|l| l.unwrap()) {
+        if line.trim().starts_with("Date:") {
+            release.date = DateTime::parse_from_rfc2822(line).unwrap();
+            println!("{}", line);
+        }
+    }
+    return Ok(());
 }
 
 /// Which compression algorithm is used for an index.
+#[derive(Debug)]
 enum Compression {
     NONE,
     XZ,
@@ -46,6 +55,7 @@ enum Compression {
 }
 
 /// ReleaseData represents the control file that is used to define a repository
+#[derive(Debug)]
 struct ReleaseData {
     description: Option<String>,
     origin: Option<String>,
@@ -66,6 +76,7 @@ struct ReleaseData {
 
 /// HashedFile represents the individual files linked to from the InRelease file.
 /// This struct does not seperate between Packages, Sources, Contents, or Indices.
+#[derive(Debug)]
 struct HashedFile {
     name: String,
     compression: Compression,
