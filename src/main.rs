@@ -18,48 +18,59 @@
 
 use chrono::DateTime;
 use chrono::Utc;
+use std::error::Error;
+use std::fs::File;
+use std::io;
+use std::io::prelude::*;
+use voca_rs::manipulate::trim;
+use voca_rs::Voca;
+
+const FILENAME: &str = "Debian-InRelease";
 
 /// main does stuff
 ///
-fn main() {
-  println!("Hello, world!");
+fn main() -> Result<(), Box<dyn Error>> {
+    let file = File::open(FILENAME)?;
+    let mut contents = String::with_capacity(4096);
+    let read_status = file.read_to_string(&mut contents)?;
+    println!("{}", contents);
 }
 
 /// Which compression algorithm is used for an index.
 enum Compression {
-  NONE,
-  XZ,
-  GZIP,
-  BZIP2,
-  LZMA,
+    NONE,
+    XZ,
+    GZIP,
+    BZIP2,
+    LZMA,
 }
 
 /// ReleaseData represents the control file that is used to define a repository
 struct ReleaseData {
-  description: Option<String>,
-  origin: Option<String>,
-  label: Option<String>,
-  version: Option<String>,
-  suite: String,
-  codename: String,
-  components: Vec<String>,
-  architectures: Vec<String>,
-  date: DateTime<Utc>,
-  valid_until: Option<DateTime<Utc>>,
-  files: Option<Vec<HashedFile>>,
-  not_automatic: Option<bool>,
-  but_automatic_upgrades: Option<bool>,
-  acquire_by_hash: Option<bool>,
-  signed_by: Option<Vec<String>>,
+    description: Option<String>,
+    origin: Option<String>,
+    label: Option<String>,
+    version: Option<String>,
+    suite: String,
+    codename: String,
+    components: Vec<String>,
+    architectures: Vec<String>,
+    date: DateTime<Utc>,
+    valid_until: Option<DateTime<Utc>>,
+    files: Option<Vec<HashedFile>>,
+    not_automatic: Option<bool>,
+    but_automatic_upgrades: Option<bool>,
+    acquire_by_hash: Option<bool>,
+    signed_by: Option<Vec<String>>,
 }
 
 /// HashedFile represents the individual files linked to from the InRelease file.
 /// This struct does not seperate between Packages, Sources, Contents, or Indices.
 struct HashedFile {
-  name: String,
-  compression: Compression,
-  md5: Option<String>,
-  sha1: Option<String>,
-  sha256: Option<String>,
-  sha512: Option<String>,
+    name: String,
+    compression: Compression,
+    md5: Option<String>,
+    sha1: Option<String>,
+    sha256: Option<String>,
+    sha512: Option<String>,
 }
