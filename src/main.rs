@@ -26,6 +26,7 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Lines;
 use voca_rs::manipulate::trim;
+use voca_rs::split::split;
 //use voca_rs::query;
 use voca_rs::Voca;
 
@@ -66,8 +67,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             if trimmed_line.starts_with("Codename:") {
                 _data.codename = parse_a_codename(&trimmed_line);
             }
-            if trimmed_line.starts_with("Components") {
+            if trimmed_line.starts_with("Components:") {
                 _data.components = parse_the_components(&trimmed_line);
+            }
+            if trimmed_line.starts_with("Architectures:") {
+                _data.architectures = parse_the_architectures(&trimmed_line);
             }
         } else {
             break;
@@ -77,13 +81,31 @@ fn main() -> Result<(), Box<dyn Error>> {
     return Ok(());
 }
 
+fn parse_the_architectures(input_line: &String) -> Vec<String> {
+    let index = input_line
+        .find(':')
+        .expect("A : went missing in parse_the_architectures");
+    let last_part = input_line[(index + 1)..].trim();
+    let vecstr = last_part._split(" ");
+    let mut v = Vec::<String>::with_capacity(vecstr.len());
+    for i in vecstr.iter() {
+        v.push(String::from(*i));
+    }
+    return v;
+}
+
 /// parses the components
-fn parse_the_components(input_line: &string) -> Vec<String> {
+fn parse_the_components(input_line: &String) -> Vec<String> {
     let index = input_line
         .find(':')
         .expect("A : went missing in parse_the_components");
     let last_part = input_line[(index + 1)..].trim();
-    return last_part.split(' ');
+    let vecstr = last_part._split(" ");
+    let mut v = Vec::<String>::with_capacity(vecstr.len());
+    for i in vecstr.iter() {
+        v.push(String::from(*i));
+    }
+    return v;
 }
 
 /// parses a codename
@@ -140,7 +162,6 @@ struct ReleaseData {
     components: Vec<String>,
     architectures: Vec<String>,
     date: DateTime<Utc>,
-    valid_until: Option<DateTime<Utc>>,
     files: Option<Vec<HashedFile>>,
     acquire_by_hash: Option<bool>,
 }
@@ -155,7 +176,6 @@ impl ReleaseData {
             components: vec![String::new()],
             architectures: vec![String::from("All"), String::from("Amd64")],
             date: Utc::now(),
-            valid_until: None,
             files: None,
             acquire_by_hash: None,
         };
